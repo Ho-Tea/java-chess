@@ -2,10 +2,10 @@ package view.dto;
 
 import view.GameCommand;
 
-import java.util.Optional;
+public record GameProceedRequest(GameCommand gameCommand, String sourcePosition, String targetPosition) {
+    private static final String NOT_EXIST = "";
 
-public record GameProceedRequest(GameCommand gameCommand, Optional<String> sourcePosition, Optional<String> targetPosition) {
-    public GameProceedRequest(GameCommand gameCommand){
-        this(gameCommand, Optional.empty(), Optional.empty());
+    public GameProceedRequest(GameCommand gameCommand) {
+        this(gameCommand, NOT_EXIST, NOT_EXIST);
     }
 }

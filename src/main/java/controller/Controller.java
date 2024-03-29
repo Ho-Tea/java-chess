@@ -59,8 +59,8 @@ public class Controller {
     }
 
     private void controlChessBoard(final ChessBoard chessBoard, final GameProceedRequest gameProceedRequest) {
-        Position source = matchPosition(gameProceedRequest.sourcePosition().get());
-        Position destination = matchPosition(gameProceedRequest.targetPosition().get());
+        Position source = matchPosition(gameProceedRequest.sourcePosition());
+        Position destination = matchPosition(gameProceedRequest.targetPosition());
         chessBoard.move(source, destination);
     }
 

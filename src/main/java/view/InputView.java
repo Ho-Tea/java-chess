@@ -39,7 +39,7 @@ public class InputView {
         if (gameCommand == GameCommand.MOVE) {
             validateInputSize(inputMovement);
             validateInputPositionSize(inputMovement);
-            return new GameProceedRequest(gameCommand, Optional.of(inputMovement.get(SOURCE_POSITION_INDEX)), Optional.of(inputMovement.get(TARGET_POSITION_INDEX)));
+            return new GameProceedRequest(gameCommand, inputMovement.get(SOURCE_POSITION_INDEX), inputMovement.get(TARGET_POSITION_INDEX));
         }
         return new GameProceedRequest(gameCommand);
     }
