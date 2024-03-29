@@ -10,21 +10,18 @@ public class OutputView {
     private static final int BOARD_SIZE = 8;
     private static final char EMPTY_SPACE = '.';
 
-    private final char[][] chessBoard = new char[BOARD_SIZE][BOARD_SIZE];
-
-    public OutputView() {
-        initializeChessBoard(chessBoard);
-    }
-
-    private void initializeChessBoard(final char[][] chessBoard) {
+    private char[][] initializeChessBoard() {
+        char[][] chessBoard = new char[BOARD_SIZE][BOARD_SIZE];
         for (char[] row : chessBoard) {
             Arrays.fill(row, EMPTY_SPACE);
         }
+        return chessBoard;
     }
 
     public void printChessBoard(final List<PieceInfo> pieceInfos) {
-        pieceInfos.forEach(this::placePieceOnBoard);
-        printBoard();
+        char[][] chessBoard = initializeChessBoard();
+        pieceInfos.forEach(pieceInfo -> placePieceOnBoard(chessBoard, pieceInfo));
+        printBoard(chessBoard);
     }
 
     public void printInitialGamePrompt() {
@@ -34,13 +31,13 @@ public class OutputView {
         System.out.println("> 게임 이동 : move source위치 target위치 - 예. move b2 b3");
     }
 
-    private void placePieceOnBoard(final PieceInfo pieceInfo) {
+    private void placePieceOnBoard(final char[][] chessBoard, final PieceInfo pieceInfo) {
         int rowIndex = BOARD_SIZE - pieceInfo.rank();
         int columnIndex = pieceInfo.file() - 1;
         chessBoard[rowIndex][columnIndex] = pieceInfo.role();
     }
 
-    private void printBoard() {
+    private void printBoard(final char[][] chessBoard) {
         Arrays.stream(chessBoard)
               .map(String::valueOf)
               .forEach(System.out::println);
