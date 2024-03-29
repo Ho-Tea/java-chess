@@ -2,6 +2,7 @@ package model.piece.role;
 
 import model.direction.ShiftPattern;
 import model.piece.Color;
+import model.score.PieceScore;
 import model.shift.MultiShift;
 
 public final class Queen extends Role {
@@ -12,5 +13,10 @@ public final class Queen extends Role {
     @Override
     public RoleStatus status() {
         return RoleStatus.QUEEN;
+    }
+
+    @Override
+    public PieceScore score() {
+        return PieceScore.QUEEN;
     }
 }

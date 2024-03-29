@@ -5,6 +5,7 @@ import model.direction.WayPoints;
 import model.piece.Color;
 import model.piece.Piece;
 import model.position.Position;
+import model.score.PieceScore;
 import model.shift.Shift;
 
 import java.util.Set;
@@ -20,6 +21,8 @@ public sealed abstract class Role permits Bishop, King, Knight, Pawn, Queen, Roo
     }
 
     public abstract RoleStatus status();
+
+    public abstract PieceScore score();
 
     public void validateMoving(final WayPoints wayPoints, final Role target) {
         validateNotSameColor(target);

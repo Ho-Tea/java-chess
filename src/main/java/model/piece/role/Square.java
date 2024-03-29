@@ -1,6 +1,7 @@
 package model.piece.role;
 
 import model.piece.Color;
+import model.score.PieceScore;
 import model.shift.NoneShift;
 
 public final class Square extends Role {
@@ -16,5 +17,10 @@ public final class Square extends Role {
     @Override
     public boolean isOccupied() {
         return false;
+    }
+
+    @Override
+    public PieceScore score() {
+        return PieceScore.SQUARE;
     }
 }

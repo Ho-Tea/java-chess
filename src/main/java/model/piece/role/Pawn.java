@@ -7,6 +7,7 @@ import model.direction.WayPoints;
 import model.piece.Color;
 import model.position.Position;
 import model.position.Rank;
+import model.score.PieceScore;
 import model.shift.SingleShift;
 
 import java.util.ArrayList;
@@ -73,5 +74,10 @@ public final class Pawn extends Role {
         if (ShiftPattern.isForward(direction) && target.isOccupied()) {
             throw new IllegalArgumentException("해당 방향으로 이동 시 도착지에 상대편의 기물이 존재할 경우 이동이 불가 합니다.");
         }
+    }
+
+    @Override
+    public PieceScore score() {
+        return PieceScore.PAWN;
     }
 }

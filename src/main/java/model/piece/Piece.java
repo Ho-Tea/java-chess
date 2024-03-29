@@ -7,6 +7,7 @@ import model.piece.role.Role;
 import model.piece.role.RoleStatus;
 import model.piece.role.Square;
 import model.position.Position;
+import model.score.PieceScore;
 
 public class Piece {
     private Role role;
@@ -40,5 +41,9 @@ public class Piece {
 
     public Color color() {
         return role.color();
+    }
+
+    public PieceScore score() {
+        return role.score();
     }
 }
