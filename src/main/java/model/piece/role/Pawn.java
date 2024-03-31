@@ -32,23 +32,24 @@ public final class Pawn extends Role {
 
     @Override
     public Set<Route> findPossibleAllRoute(final Position position) {
+        Set<Route> routes = super.findPossibleAllRoute(position);
         if (position.rank() == WHITE_INITIAL_RANK) {
-            return routes(Direction.N, position);
+            routes.add(route(Direction.N, position));
         }
         if (position.rank() == BLACK_INITIAL_RANK) {
-            return routes(Direction.S, position);
+            routes.add(route(Direction.S, position));
         }
-        return super.findPossibleAllRoute(position);
+        return routes;
     }
 
-    private Set<Route> routes(final Direction direction, final Position position) {
+    private Route route(final Direction direction, final Position position) {
         List<Position> sequentialPositions = new ArrayList<>();
         Position movingPosition = position;
         for (int i = 0; i < INITIAL_POSSIBLE_MOVEMENT; i++) {
             movingPosition = movingPosition.getNextPosition(direction);
             sequentialPositions.add(movingPosition);
         }
-        return Set.of(new Route(direction, sequentialPositions));
+        return new Route(direction, sequentialPositions);
     }
 
     @Override

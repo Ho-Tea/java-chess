@@ -27,7 +27,10 @@ class PawnTest {
         Set<Route> routes = pawn.findPossibleAllRoute(initialPosition);
 
         Set<Route> expectedRoutes = Set.of(
-                new Route(Direction.N, List.of(Position.of(File.E, Rank.THREE), Position.of(File.E, Rank.FOUR)))
+                new Route(Direction.N, List.of(Position.of(File.E, Rank.THREE), Position.of(File.E, Rank.FOUR))),
+                new Route(Direction.N, List.of(Position.of(File.E, Rank.THREE))),
+                new Route(Direction.NE, List.of(Position.of(File.F, Rank.THREE))),
+                new Route(Direction.NW, List.of(Position.of(File.D, Rank.THREE)))
         );
 
         assertThat(routes).isEqualTo(expectedRoutes);
@@ -57,7 +60,10 @@ class PawnTest {
         Set<Route> routes = pawn.findPossibleAllRoute(initialPosition);
 
         Set<Route> expectedRoutes = Set.of(
-                new Route(Direction.S, List.of(Position.of(File.E, Rank.SIX), Position.of(File.E, Rank.FIVE)))
+                new Route(Direction.S, List.of(Position.of(File.E, Rank.SIX), Position.of(File.E, Rank.FIVE))),
+                new Route(Direction.S, List.of(Position.of(File.E, Rank.SIX))),
+                new Route(Direction.SE, List.of(Position.of(File.F, Rank.SIX))),
+                new Route(Direction.SW, List.of(Position.of(File.D, Rank.SIX)))
         );
 
         assertThat(routes).isEqualTo(expectedRoutes);
