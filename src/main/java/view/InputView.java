@@ -44,6 +44,18 @@ public class InputView {
         return new GameProceedRequest(gameCommand);
     }
 
+    public static GameCommand inputGameStatusCommand() {
+        System.out.println("체스 게임을 종료합니다.");
+        System.out.println("> 게임 현황 확인 : status");
+        System.out.println("> 게임 종료 : end");
+        String input = readLine();
+        GameCommand gameCommand = GameCommand.from(input);
+        if (gameCommand != GameCommand.STATUS && gameCommand != GameCommand.END) {
+            throw new IllegalArgumentException("게임 현황 확인(status) 혹은 종료(end)를 입력해주세요.");
+        }
+        return gameCommand;
+    }
+
     private static void validateInputSize(List<String> inputMovement) {
         if (inputMovement.size() != REQUIRED_TO_MOVE_INPUT_SIZE) {
             throw new IllegalArgumentException("source위치 target위치를 입력해 주세요. - 예. move b2 b3");

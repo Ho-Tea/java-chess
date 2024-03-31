@@ -45,7 +45,7 @@ abcdefgh
 - [x] 게임 종료를 위한 `end` 입력 받기
 - [x] 게임 진행을 위한 `move source위치 target위치` 입력 받기
   - [x] 정해진 게임 Command 입력인지 검증
-- [ ] 게임 결과를 위한 `status`입력 받기
+- [x] 게임 결과를 위한 `status`입력 받기
 
 ### 2-2. 메인 로직 실행
 

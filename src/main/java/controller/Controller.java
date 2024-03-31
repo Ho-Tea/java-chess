@@ -27,6 +27,7 @@ public class Controller {
             outputView.printChessBoard(pieceInfos);
             gameCommand = play(chessBoard);
         }
+        finish();
     }
 
     private GameCommand initGameCommand() {
@@ -58,5 +59,17 @@ public class Controller {
         Position source = Position.from(gameProceedRequest.sourcePosition());
         Position destination = Position.from(gameProceedRequest.targetPosition());
         chessBoard.proceedToTurn(source, destination);
+    }
+
+    private void finish(){
+        try {
+            GameCommand gameCommand = InputView.inputGameStatusCommand();
+            if(gameCommand == GameCommand.STATUS){
+
+            }
+        } catch (IllegalArgumentException e) {
+            outputView.printExceptionMessage(e.getMessage());
+            finish();
+        }
     }
 }
