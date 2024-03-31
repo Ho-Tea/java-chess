@@ -1,7 +1,6 @@
 package controller;
 
 import model.chessboard.ChessBoard;
-import model.piece.Color;
 import model.position.Position;
 import util.PieceInfoMapper;
 import view.GameCommand;
@@ -23,17 +22,11 @@ public class Controller {
         outputView.printInitialGamePrompt();
         GameCommand gameCommand = initGameCommand();
         ChessBoard chessBoard = new ChessBoard();
-        while (gameCommand != GameCommand.END || !chessBoard.checkMate()) {
+        while (gameCommand != GameCommand.END && !chessBoard.checkMate()) {
             List<PieceInfo> pieceInfos = PieceInfoMapper.toPieceInfo(chessBoard);
             outputView.printChessBoard(pieceInfos);
             gameCommand = play(chessBoard);
         }
-        System.out.println("게임 결과를 보고싶다면 status를 입력하세요");
-        System.out.println("status입력 대기 중");
-
-        chessBoard.winner();
-        chessBoard.score(Color.BLACK);
-        chessBoard.score(Color.WHITE);
     }
 
     private GameCommand initGameCommand() {
@@ -53,9 +46,6 @@ public class Controller {
             }
             if (gameProceedRequest.gameCommand() == GameCommand.MOVE) {
                 controlChessBoard(chessBoard, gameProceedRequest);
-            }
-            if (gameProceedRequest.gameCommand() == GameCommand.STATUS) {
-
             }
             return gameProceedRequest.gameCommand();
         } catch (IllegalArgumentException e) {

@@ -37,7 +37,7 @@ public class ChessBoard {
         Piece targetPiece = new Piece(destination.target());
         try {
             sourcePiece.moveTo(destination);
-            chessState.validateCheck(chessBoard);
+            chessState.validateTriggerOfCheck(chessBoard);
         } catch (IllegalArgumentException e) {
             revoke(source, destination.target(), new Destination(destination.position(), targetPiece));
             throw new IllegalArgumentException(e.getMessage());
@@ -58,7 +58,7 @@ public class ChessBoard {
     }
 
     public Color winner() {
-        return chessState.oppositeFaction();
+        return chessState.winner();
     }
 
     public Map<Position, Piece> getChessBoard() {

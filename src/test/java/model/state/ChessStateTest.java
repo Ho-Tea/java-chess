@@ -1,18 +1,22 @@
 package model.state;
 
-import model.chessboard.ChessBoard;
 import model.piece.Color;
 import model.piece.Piece;
+import model.piece.role.King;
 import model.piece.role.Pawn;
+import model.piece.role.Rook;
+import model.piece.role.Square;
 import model.position.File;
 import model.position.Position;
 import model.position.Rank;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.assertj.core.api.Assertions.assertThatCode;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.junit.jupiter.api.Assertions.assertAll;
 
 class ChessStateTest {
 
@@ -22,7 +26,7 @@ class ChessStateTest {
         ChessState chessState = new ChessState();
         assertThatThrownBy(() -> chessState.checkTheTurn(new Piece(new Pawn(Color.BLACK))))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("현재 해당 진영의 차례가 아닙니다.");
+                .hasMessage("하얀색 진영의 기물을 이동해야 합니다.");
     }
 
     @Test
@@ -32,31 +36,49 @@ class ChessStateTest {
         chessState.passTheTurn();
         assertThatThrownBy(() -> chessState.checkTheTurn(new Piece(new Pawn(Color.WHITE))))
                 .isInstanceOf(IllegalArgumentException.class)
-                .hasMessage("현재 해당 진영의 차례가 아닙니다.");
+                .hasMessage("검정색 진영의 기물을 이동해야 합니다.");
     }
 
     @Test
     @DisplayName("체크가 된 경우 체크를 해소할 수 있는 이동만 가능하다.")
     void validateCheck() {
-        ChessBoard chessBoard = makeCheckStateChessBoard();
-        assertAll(
-                () -> assertThatThrownBy(() -> chessBoard.move(Position.of(File.H, Rank.SIX), Position.of(File.H, Rank.FIVE)))
-                        .isInstanceOf(IllegalArgumentException.class)
-                        .hasMessage("해당 방향으로의 이동은 Check를 해소할 수 없습니다."),
-                () -> assertThatCode(() -> chessBoard.move(Position.of(File.D, Rank.EIGHT), Position.of(File.E, Rank.SEVEN)))
-                        .doesNotThrowAnyException()
-        );
+        Map<Position, Piece> chessBoard = makeCheckChessBoard();
+        ChessState chessState = new ChessState();
+        assertThatThrownBy(() -> chessState.validateTriggerOfCheck(chessBoard))
+                .isInstanceOf(IllegalArgumentException.class)
+                .hasMessage("해당 방향으로의 이동은 Check를 유발합니다.");
     }
 
-    private ChessBoard makeCheckStateChessBoard() {
-        ChessBoard chessBoard = new ChessBoard();
-        chessBoard.move(Position.of(File.A, Rank.TWO), Position.of(File.A, Rank.FOUR));
-        chessBoard.move(Position.of(File.A, Rank.SEVEN), Position.of(File.A, Rank.SIX));
-        chessBoard.move(Position.of(File.A, Rank.ONE), Position.of(File.A, Rank.THREE));
-        chessBoard.move(Position.of(File.A, Rank.SIX), Position.of(File.A, Rank.FIVE));
-        chessBoard.move(Position.of(File.A, Rank.THREE), Position.of(File.E, Rank.THREE));
-        chessBoard.move(Position.of(File.H, Rank.SEVEN), Position.of(File.H, Rank.SIX));
-        chessBoard.move(Position.of(File.E, Rank.THREE), Position.of(File.E, Rank.SEVEN));
+    private Map<Position, Piece> makeCheckChessBoard() {
+        Map<Position, Piece> chessBoard = new HashMap<>();
+        for (File file : File.values()) {
+            for (Rank rank : Rank.values()) {
+                chessBoard.put(Position.of(file, rank), new Piece(new Square()));
+            }
+        }
+        chessBoard.put(Position.of(File.D, Rank.THREE), new Piece(new King(Color.WHITE)));
+        chessBoard.put(Position.of(File.D, Rank.SEVEN), new Piece(new Rook(Color.BLACK)));
+        chessBoard.put(Position.of(File.E, Rank.FOUR), new Piece(new Rook(Color.WHITE)));
+        return chessBoard;
+    }
+
+    @DisplayName("킹이 잡힌 경우 체크메이트가 발생한다.")
+    @Test
+    void checkMate() {
+        Map<Position, Piece> chessBoard = makeCheckMateChessBoard();
+        ChessState chessState = new ChessState();
+        chessState.validateCheck(makeCheckChessBoard());
+        assertThat(chessState.checkMate(chessBoard)).isTrue();
+    }
+
+    private Map<Position, Piece> makeCheckMateChessBoard() {
+        Map<Position, Piece> chessBoard = new HashMap<>();
+        for (File file : File.values()) {
+            for (Rank rank : Rank.values()) {
+                chessBoard.put(Position.of(file, rank), new Piece(new Square()));
+            }
+        }
+        chessBoard.put(Position.of(File.H, Rank.TWO), new Piece(new King(Color.BLACK)));
         return chessBoard;
     }
 }

@@ -10,7 +10,7 @@ public sealed class BlackFaction implements FactionState permits BlackFactionChe
     @Override
     public void checkSameFaction(final Piece piece) {
         if (piece.color() != Color.BLACK) {
-            throw new IllegalArgumentException("현재 해당 진영의 차례가 아닙니다.");
+            throw new IllegalArgumentException("검정색 진영의 기물을 이동해야 합니다.");
         }
     }
 
@@ -31,5 +31,15 @@ public sealed class BlackFaction implements FactionState permits BlackFactionChe
     @Override
     public FactionState check() {
         return new BlackFactionCheck();
+    }
+
+    @Override
+    public boolean defeat(Map<Position, Piece> chessBoard) {
+        return false;
+    }
+
+    @Override
+    public Color oppositeFaction() {
+        return Color.WHITE;
     }
 }
