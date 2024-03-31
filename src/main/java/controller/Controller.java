@@ -23,7 +23,7 @@ public class Controller {
         outputView.printInitialGamePrompt();
         GameCommand gameCommand = initGameCommand();
         ChessBoard chessBoard = new ChessBoard();
-        while (gameCommand != GameCommand.END || chessBoard.existKing()) {
+        while (gameCommand != GameCommand.END || !chessBoard.checkMate()) {
             List<PieceInfo> pieceInfos = PieceInfoMapper.toPieceInfo(chessBoard);
             outputView.printChessBoard(pieceInfos);
             gameCommand = play(chessBoard);
@@ -67,6 +67,6 @@ public class Controller {
     private void controlChessBoard(final ChessBoard chessBoard, final GameProceedRequest gameProceedRequest) {
         Position source = Position.from(gameProceedRequest.sourcePosition());
         Position destination = Position.from(gameProceedRequest.targetPosition());
-        chessBoard.move(source, destination);
+        chessBoard.proceedToTurn(source, destination);
     }
 }

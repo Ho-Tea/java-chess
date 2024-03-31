@@ -3,8 +3,10 @@ package model.chessboard;
 import model.direction.Destination;
 import model.direction.Route;
 import model.direction.WayPoints;
+import model.piece.Color;
 import model.piece.Piece;
 import model.position.Position;
+import model.score.Score;
 import model.state.ChessState;
 
 import java.util.Map;
@@ -18,7 +20,7 @@ public class ChessBoard {
         this.chessState = new ChessState();
     }
 
-    public void move(final Position source, final Position target) {
+    public void proceedToTurn(final Position source, final Position target) {
         Piece sourcePiece = chessBoard.get(source);
         Piece targetPiece = chessBoard.get(target);
         chessState.checkTheTurn(sourcePiece);
@@ -26,10 +28,37 @@ public class ChessBoard {
         WayPoints wayPoints = WayPoints.of(chessBoard, route, target);
         Destination destination = new Destination(target, targetPiece);
         sourcePiece.validateMoving(wayPoints, destination);
-        sourcePiece.moveTo(destination);
-        chessState.validateCheck(chessBoard);
+        move(source, sourcePiece, destination);
         chessState.passTheTurn();
         chessState.validateCheck(chessBoard);
+    }
+
+    private void move(final Position source, final Piece sourcePiece, final Destination destination) {
+        Piece targetPiece = new Piece(destination.target());
+        try {
+            sourcePiece.moveTo(destination);
+            chessState.validateCheck(chessBoard);
+        } catch (IllegalArgumentException e) {
+            revoke(source, destination.target(), new Destination(destination.position(), targetPiece));
+            throw new IllegalArgumentException(e.getMessage());
+        }
+    }
+
+    private void revoke(final Position source, final Piece sourcePiece, final Destination destination) {
+        chessBoard.put(source, sourcePiece);
+        chessBoard.put(destination.position(), destination.target());
+    }
+
+    public Score score(Color color) {
+        return Score.of(chessBoard, color);
+    }
+
+    public boolean checkMate() {
+        return chessState.checkMate(chessBoard);
+    }
+
+    public Color winner() {
+        return chessState.oppositeFaction();
     }
 
     public Map<Position, Piece> getChessBoard() {

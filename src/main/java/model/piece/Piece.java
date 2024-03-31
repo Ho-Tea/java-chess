@@ -16,6 +16,10 @@ public class Piece {
         this.role = role;
     }
 
+    public Piece(final Piece piece) {
+        this(piece.role);
+    }
+
     public Route findRoute(final Position source, final Position target) {
         return this.role.findRoute(source, target);
     }

@@ -17,7 +17,7 @@ class ChessBoardTest {
         ChessBoard chessBoard = new ChessBoard();
         assertAll(
                 () -> assertThat(chessBoard.getChessBoard().get(Position.of(File.A, Rank.FOUR)).isOccupied()).isFalse(),
-                () -> chessBoard.move(Position.of(File.A, Rank.TWO), Position.of(File.A, Rank.FOUR)),
+                () -> chessBoard.proceedToTurn(Position.of(File.A, Rank.TWO), Position.of(File.A, Rank.FOUR)),
                 () -> assertThat(chessBoard.getChessBoard().get(Position.of(File.A, Rank.FOUR)).isOccupied()).isTrue()
         );
     }
