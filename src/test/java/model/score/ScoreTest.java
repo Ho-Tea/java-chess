@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertAll;
 
 class ScoreTest {
 
@@ -31,10 +31,18 @@ class ScoreTest {
      */
     @DisplayName("각 진영의 점수를 산출한다.")
     @Test
-    void score(){
+    void score() {
+        Map<Position, Piece> chessBoard = makeChessBoard();
+        assertAll(
+                () -> assertThat(Score.of(chessBoard, Color.BLACK)).isEqualTo(new Score(20.0)),
+                () -> assertThat(Score.of(chessBoard, Color.WHITE)).isEqualTo(new Score(19.5))
+        );
+    }
+
+    private Map<Position, Piece> makeChessBoard() {
         Map<Position, Piece> chessBoard = new HashMap<>();
         for (File file : File.values()) {
-            for(Rank rank : Rank.values()){
+            for (Rank rank : Rank.values()) {
                 chessBoard.put(Position.of(file, rank), new Piece(new Square()));
             }
         }
@@ -53,11 +61,6 @@ class ScoreTest {
         chessBoard.put(Position.of(File.G, Rank.FOUR), new Piece(new Queen(Color.WHITE)));
         chessBoard.put(Position.of(File.G, Rank.TWO), new Piece(new Pawn(Color.WHITE)));
         chessBoard.put(Position.of(File.H, Rank.THREE), new Piece(new Pawn(Color.WHITE)));
-
-        assertAll(
-                () -> assertThat(Score.of(chessBoard, Color.BLACK)).isEqualTo(new Score(20.0)),
-                () -> assertThat(Score.of(chessBoard, Color.WHITE)).isEqualTo(new Score(19.5))
-        );
+        return chessBoard;
     }
-
 }

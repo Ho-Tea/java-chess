@@ -21,6 +21,9 @@ public sealed class WhiteFaction implements FactionState permits WhiteFactionChe
 
     @Override
     public boolean isCheck(final Map<Position, Piece> chessBoard) {
+        if (checkMate(chessBoard, Color.WHITE)) {
+            return false;
+        }
         Position kingPosition = positionOfKing(chessBoard, Color.WHITE);
         Map<Position, Piece> enemyFaction = factionOf(chessBoard, Color.BLACK);
         return enemyFaction.entrySet()
@@ -35,7 +38,7 @@ public sealed class WhiteFaction implements FactionState permits WhiteFactionChe
 
     @Override
     public boolean defeat(final Map<Position, Piece> chessBoard) {
-        return false;
+        return checkMate(chessBoard, Color.WHITE);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package controller;
 
 import model.chessboard.ChessBoard;
+import model.piece.Color;
 import model.position.Position;
 import util.PieceInfoMapper;
 import view.GameCommand;
@@ -27,7 +28,7 @@ public class Controller {
             outputView.printChessBoard(pieceInfos);
             gameCommand = play(chessBoard);
         }
-        finish();
+        finish(chessBoard);
     }
 
     private GameCommand initGameCommand() {
@@ -61,15 +62,17 @@ public class Controller {
         chessBoard.proceedToTurn(source, destination);
     }
 
-    private void finish(){
+    private void finish(final ChessBoard chessBoard) {
         try {
             GameCommand gameCommand = InputView.inputGameStatusCommand();
-            if(gameCommand == GameCommand.STATUS){
-
+            if (gameCommand == GameCommand.STATUS) {
+                outputView.printWinner(chessBoard.winner().name());
+                outputView.printScore(chessBoard.score(Color.BLACK).value(), Color.BLACK.name());
+                outputView.printScore(chessBoard.score(Color.WHITE).value(), Color.WHITE.name());
             }
         } catch (IllegalArgumentException e) {
             outputView.printExceptionMessage(e.getMessage());
-            finish();
+            finish(chessBoard);
         }
     }
 }

@@ -44,6 +44,15 @@ public class OutputView {
         System.out.println();
     }
 
+    public void printScore(double score, String color) {
+        System.out.printf("%s : %.1f 점", color, score);
+        System.out.println();
+    }
+
+    public void printWinner(String color) {
+        System.out.println("승리 : " + color);
+    }
+
     public void printExceptionMessage(final String message) {
         System.out.println("[ERROR] " + message);
     }

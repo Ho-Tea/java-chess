@@ -36,6 +36,9 @@ public sealed interface FactionState permits BlackFaction, WhiteFaction {
     }
 
     default boolean possibleCheckMate(final Map<Position, Piece> chessBoard, final Color ourColor, final Color enemyColor) {
+        if (checkMate(chessBoard, ourColor)) {
+            return true;
+        }
         Position kingPosition = positionOfKing(chessBoard, ourColor);
         Map<Position, Piece> enemyFaction = factionOf(chessBoard, enemyColor);
         Map<Position, Piece> ourFaction = factionOf(chessBoard, ourColor);
@@ -51,20 +54,20 @@ public sealed interface FactionState permits BlackFaction, WhiteFaction {
         return !(canTakeEnemy || canDefence);
     }
 
-    private boolean rotate(Route route, Position kingPosition, Map<Position, Piece> ourFaction) {
+    private boolean rotate(final Route route, final Position kingPosition, final Map<Position, Piece> ourFaction) {
         return route.positions()
                     .stream()
                     .filter(position -> !position.equals(kingPosition))
                     .anyMatch(position -> canDefence(ourFaction, position));
     }
 
-    private boolean canTakeEnemy(Map<Position, Piece> chessBoard, Map<Position, Piece> ourFaction, List<Map.Entry<Position, Piece>> enemies) {
+    private boolean canTakeEnemy(final Map<Position, Piece> chessBoard, final Map<Position, Piece> ourFaction, final List<Map.Entry<Position, Piece>> enemies) {
         return enemies.stream()
                       .map(Map.Entry::getKey)
                       .allMatch(enemy -> possibleAttacking(chessBoard, ourFaction, enemy));
     }
 
-    private boolean canDefence(Map<Position, Piece> ourFaction, Position destination) {
+    private boolean canDefence(final Map<Position, Piece> ourFaction, final Position destination) {
         try {
             return ourFaction.entrySet()
                              .stream()

@@ -21,6 +21,7 @@ public class ChessBoard {
     }
 
     public void proceedToTurn(final Position source, final Position target) {
+        chessState.validateCheck(chessBoard);
         Piece sourcePiece = chessBoard.get(source);
         Piece targetPiece = chessBoard.get(target);
         chessState.checkTheTurn(sourcePiece);
@@ -30,7 +31,6 @@ public class ChessBoard {
         sourcePiece.validateMoving(wayPoints, destination);
         move(source, sourcePiece, destination);
         chessState.passTheTurn();
-        chessState.validateCheck(chessBoard);
     }
 
     private void move(final Position source, final Piece sourcePiece, final Destination destination) {

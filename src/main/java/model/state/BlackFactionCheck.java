@@ -10,10 +10,7 @@ public final class BlackFactionCheck extends BlackFaction {
 
     @Override
     public boolean isCheck(final Map<Position, Piece> chessBoard) {
-        if (super.possibleCheckMate(chessBoard, Color.BLACK, Color.WHITE)) {
-            return false;
-        }
-        if (super.isCheck(chessBoard)) {
+        if (!super.possibleCheckMate(chessBoard, Color.BLACK, Color.WHITE) && super.isCheck(chessBoard)) {
             throw new IllegalArgumentException("해당 방향으로의 이동은 Check를 해소할 수 없습니다.");
         }
         return false;
