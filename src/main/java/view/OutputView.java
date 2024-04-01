@@ -31,6 +31,10 @@ public class OutputView {
         System.out.println("> 게임 이동 : move source위치 target위치 - 예. move b2 b3");
     }
 
+    public void printAlreadyExistGame(){
+        System.out.println("진행중인 게임을 불러옵니다.");
+    }
+
     private void placePieceOnBoard(final char[][] chessBoard, final PieceInfo pieceInfo) {
         int rowIndex = BOARD_SIZE - pieceInfo.rank();
         int columnIndex = pieceInfo.file() - 1;

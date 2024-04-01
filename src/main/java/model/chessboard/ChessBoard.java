@@ -15,6 +15,11 @@ public class ChessBoard {
     private final Map<Position, Piece> chessBoard;
     private final ChessState chessState;
 
+    public ChessBoard(final Map<Position, Piece> chessBoard, final ChessState chessState) {
+        this.chessBoard = chessBoard;
+        this.chessState = chessState;
+    }
+
     public ChessBoard() {
         this.chessBoard = ChessBoardFactory.create();
         this.chessState = new ChessState();
