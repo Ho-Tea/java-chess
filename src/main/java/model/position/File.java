@@ -29,6 +29,13 @@ public enum File {
                      .orElseThrow(() -> new IllegalArgumentException("일치하는 File이 존재하지 않습니다."));
     }
 
+    public static File fromIndex(int index) {
+        return Arrays.stream(values())
+                     .filter(file -> file.index == index)
+                     .findFirst()
+                     .orElseThrow(() -> new IllegalArgumentException("일치하는 File이 존재하지 않습니다."));
+    }
+
     public boolean canMoveTo(Direction direction) {
         int movedIndex = index + direction.fileDifferential();
         return A.index <= movedIndex && movedIndex <= H.index;

@@ -28,6 +28,13 @@ public enum Rank {
                      .orElseThrow(() -> new IllegalArgumentException("일치하는 Rank가 존재하지 않습니다."));
     }
 
+    public static Rank fromIndex(int index) {
+        return Arrays.stream(values())
+                     .filter(rank -> rank.index == index)
+                     .findFirst()
+                     .orElseThrow(() -> new IllegalArgumentException("일치하는 Rank가 존재하지 않습니다."));
+    }
+
     public boolean canMoveTo(Direction direction) {
         int movedIndex = index + direction.rankDifferential();
         return ONE.index <= movedIndex && movedIndex <= EIGHT.index;

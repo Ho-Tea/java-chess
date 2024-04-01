@@ -3,13 +3,16 @@ package util;
 import model.chessboard.ChessBoard;
 import model.piece.Color;
 import model.piece.Piece;
-import model.piece.role.RoleStatus;
+import model.piece.role.*;
 import model.position.File;
 import model.position.Position;
 import model.position.Rank;
+import model.state.ChessState;
+import view.dto.ChessPiece;
 import view.dto.PieceInfo;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -52,6 +55,33 @@ public class PieceInfoMapper {
             PieceInfo pieceInfo = new PieceInfo(file.index(), rank.index(), abbreviation(piece));
             pieceInfos.add(pieceInfo);
         }
+    }
+
+    public static ChessBoard toChessBoard(final List<ChessPiece> chessPieces) {
+        List<PieceInfo> pieceInfos = PieceInfo.from(chessPieces);
+        Map<Position, Piece> chess = new LinkedHashMap<>();
+        pieceInfos.forEach(pieceInfo -> chess.put(Position.of(File.fromIndex(pieceInfo.file()), Rank.fromIndex(pieceInfo.rank()))
+                , fromChessSymbol(pieceInfo.role())));
+        return new ChessBoard(chess, new ChessState());
+    }
+
+    private static Piece fromChessSymbol(final char role) {
+        return switch (role) {
+            case 'k' -> new Piece(new King(Color.WHITE));
+            case 'q' -> new Piece(new Queen(Color.WHITE));
+            case 'p' -> new Piece(new Pawn(Color.WHITE));
+            case 'b' -> new Piece(new Bishop(Color.WHITE));
+            case 'n' -> new Piece(new Knight(Color.WHITE));
+            case 'r' -> new Piece(new Rook(Color.WHITE));
+            case 'K' -> new Piece(new King(Color.BLACK));
+            case 'Q' -> new Piece(new Queen(Color.BLACK));
+            case 'P' -> new Piece(new Pawn(Color.BLACK));
+            case 'B' -> new Piece(new Bishop(Color.BLACK));
+            case 'N' -> new Piece(new Knight(Color.BLACK));
+            case 'R' -> new Piece(new Rook(Color.BLACK));
+            case '.' -> new Piece(new Square());
+            default -> throw new IllegalStateException("Unexpected value: " + role);
+        };
     }
 
     private static char abbreviation(final Piece piece) {
