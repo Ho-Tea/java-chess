@@ -1,6 +1,6 @@
 package view;
 
-import view.dto.PieceInfo;
+import dto.PieceDto;
 
 import java.util.Arrays;
 import java.util.List;
@@ -18,27 +18,24 @@ public class OutputView {
         return chessBoard;
     }
 
-    public void printChessBoard(final List<PieceInfo> pieceInfos) {
+    public void printChessBoard(final List<PieceDto> pieceRespons) {
         char[][] chessBoard = initializeChessBoard();
-        pieceInfos.forEach(pieceInfo -> placePieceOnBoard(chessBoard, pieceInfo));
+        pieceRespons.forEach(pieceInfo -> placePieceOnBoard(chessBoard, pieceInfo));
         printBoard(chessBoard);
     }
 
-    public void printInitialGamePrompt() {
+    public void printGamePrompt() {
         System.out.println("체스 게임을 시작합니다.");
         System.out.println("> 게임 시작 : start");
+        System.out.println("> 게임 불러오기 : load");
         System.out.println("> 게임 종료 : end");
         System.out.println("> 게임 이동 : move source위치 target위치 - 예. move b2 b3");
     }
 
-    public void printAlreadyExistGame(){
-        System.out.println("진행중인 게임을 불러옵니다.");
-    }
-
-    private void placePieceOnBoard(final char[][] chessBoard, final PieceInfo pieceInfo) {
-        int rowIndex = BOARD_SIZE - pieceInfo.rank();
-        int columnIndex = pieceInfo.file() - 1;
-        chessBoard[rowIndex][columnIndex] = pieceInfo.role();
+    private void placePieceOnBoard(final char[][] chessBoard, final PieceDto pieceDto) {
+        int rowIndex = BOARD_SIZE - pieceDto.rank();
+        int columnIndex = pieceDto.file() - 1;
+        chessBoard[rowIndex][columnIndex] = pieceDto.role();
     }
 
     private void printBoard(final char[][] chessBoard) {
@@ -48,13 +45,13 @@ public class OutputView {
         System.out.println();
     }
 
-    public void printScore(double score, String color) {
+    public void printScore(final double score, String color) {
         System.out.printf("%s : %.1f 점", color, score);
         System.out.println();
     }
 
-    public void printWinner(String color) {
-        System.out.println("승리 : " + color);
+    public void printWinner(final String winner) {
+        System.out.println("게임 결과  : " + winner);
     }
 
     public void printExceptionMessage(final String message) {
