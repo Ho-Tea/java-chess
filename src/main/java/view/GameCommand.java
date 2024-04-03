@@ -3,7 +3,7 @@ package view;
 import java.util.Arrays;
 
 public enum GameCommand {
-    START("start"), END("end"), MOVE("move"), STATUS("status");
+    START("start"), END("end"), MOVE("move"), STATUS("status"), LOAD("load");
 
     private final String command;
 
