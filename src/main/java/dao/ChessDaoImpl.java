@@ -2,7 +2,6 @@ package dao;
 
 import db.DBConnection;
 import entity.PieceEntity;
-import view.dto.PieceResponse;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -41,7 +40,8 @@ public class ChessDaoImpl implements ChessDao {
                             id INT AUTO_INCREMENT PRIMARY KEY,
                             rank_index INT NOT NULL,
                             file_index INT NOT NULL,
-                            symbol VARCHAR(5) NOT NULL
+                            color ENUM('BLACK', 'WHITE', 'UN_COLORED'),
+                            role ENUM('PAWN', 'BISHOP', 'KNIGHT', 'KING', 'QUEEN', 'ROOK', 'SQUARE')
                         )""",
                 sql -> {
                     Statement stmt = connection.createStatement();
@@ -50,7 +50,7 @@ public class ChessDaoImpl implements ChessDao {
     }
 
     @Override
-    public boolean isTableEmpty() {
+    public boolean isTableNotEmpty() {
         return queryExecute("SELECT COUNT(*) AS rowcount FROM chess_pieces",
                 sql -> {
                     Statement stmt = connection.createStatement();
@@ -60,13 +60,14 @@ public class ChessDaoImpl implements ChessDao {
     }
 
     @Override
-    public void insert(final PieceResponse pieceResponse) {
-        queryExecute("INSERT INTO chess_pieces (rank_index, file_index, symbol) VALUES (?, ?, ?)",
+    public void insert(final PieceEntity pieceEntity) {
+        queryExecute("INSERT INTO chess_pieces (rank_index, file_index, color, role) VALUES (?, ?, ?, ?)",
                 sql -> {
                     PreparedStatement pstmt = connection.prepareStatement(sql);
-                    pstmt.setInt(1, pieceResponse.rank());
-                    pstmt.setInt(2, pieceResponse.file());
-                    pstmt.setString(3, String.valueOf(pieceResponse.role()));
+                    pstmt.setInt(1, pieceEntity.rank());
+                    pstmt.setInt(2, pieceEntity.file());
+                    pstmt.setString(3, pieceEntity.color());
+                    pstmt.setString(4, pieceEntity.role());
                     return pstmt.executeUpdate();
                 });
     }
@@ -99,18 +100,20 @@ public class ChessDaoImpl implements ChessDao {
                     resultSet.getLong("id"),
                     resultSet.getInt("rank_index"),
                     resultSet.getInt("file_index"),
-                    resultSet.getString("symbol")));
+                    resultSet.getString("color"),
+                    resultSet.getString("role")));
         }
         return pieces;
     }
 
     @Override
     public void update(final Long id, final PieceEntity pieceEntity) {
-        queryExecute("UPDATE chess_pieces SET symbol = ? WHERE id = ?",
+        queryExecute("UPDATE chess_pieces SET color = ?, role = ? WHERE id = ?",
                 sql -> {
                     PreparedStatement pstmt = connection.prepareStatement(sql);
-                    pstmt.setString(1, pieceEntity.symbol());
-                    pstmt.setLong(2, id);
+                    pstmt.setString(1, pieceEntity.color());
+                    pstmt.setString(2, pieceEntity.role());
+                    pstmt.setLong(3, id);
                     return pstmt.executeUpdate();
                 });
     }
