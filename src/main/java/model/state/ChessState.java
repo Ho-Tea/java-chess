@@ -1,5 +1,6 @@
 package model.state;
 
+import model.chessboard.GameResult;
 import model.piece.Color;
 import model.piece.Piece;
 import model.position.Position;
@@ -37,7 +38,10 @@ public class ChessState {
         return factionState.defeat(chessBoard);
     }
 
-    public Color winner() {
-        return factionState.oppositeFaction();
+    public GameResult winner() {
+        if(factionState.oppositeFaction() == Color.BLACK){
+            return GameResult.BLACK;
+        }
+        return GameResult.WHITE;
     }
 }
