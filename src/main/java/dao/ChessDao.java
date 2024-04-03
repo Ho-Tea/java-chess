@@ -1,23 +1,24 @@
 package dao;
 
-import view.dto.ChessPiece;
-import view.dto.PieceInfo;
+import entity.PieceEntity;
+import view.dto.PieceResponse;
 
 import java.util.List;
 
 public interface ChessDao {
 
-    void insertPiece(final PieceInfo pieceInfo);
 
-    boolean isInitITable();
+    void initializeTable();
 
-    List<ChessPiece> findAllPieces();
+    boolean isTableEmpty();
 
-    ChessPiece findByRankAndFile(final int rank, final int file);
+    void insert(final PieceResponse pieceResponse);
 
-    void update(final Long id, final ChessPiece chessPiece);
+    List<PieceEntity> findAllPieces();
 
-    void deleteAllPieces();
+    PieceEntity findByRankAndFile(final int rank, final int file);
 
-    void initializeChessTable();
+    void update(final Long id, final PieceEntity pieceEntity);
+
+    void deleteAll();
 }

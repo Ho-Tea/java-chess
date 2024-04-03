@@ -1,167 +1,134 @@
 package dao;
 
-import view.dto.ChessPiece;
-import model.position.File;
-import model.position.Rank;
-import view.dto.PieceInfo;
+import db.DBConnection;
+import entity.PieceEntity;
+import view.dto.PieceResponse;
 
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ChessDaoImpl implements ChessDao {
-    private static final String SERVER = "localhost:13306";
-    private static final String DATABASE = "chess";
-    private static final String OPTION = "?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC";
-    private static final String USERNAME = "user";
-    private static final String PASSWORD = "password";
-    private Connection connection;
+    private final Connection connection;
 
     public ChessDaoImpl() {
-        this.connection = getConnection();
-    }
-
-    private Connection getConnection() {
-        try {
-            Connection connection = DriverManager.getConnection("jdbc:mysql://" + SERVER + "/" + DATABASE + OPTION, USERNAME, PASSWORD);
-            return connection;
-        } catch (final SQLException e) {
-            System.err.println("DB 연결 오류:" + e.getMessage());
-            e.printStackTrace();
-            return null;
-        }
+        this.connection = DBConnection.getConnection();
     }
 
     @Override
-    public void insertPiece(PieceInfo pieceInfo) {
-        String sql = "INSERT INTO chess_pieces (rank_index, file_index, symbol) VALUES (?, ?, ?)";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setInt(1, pieceInfo.rank());
-            pstmt.setInt(2, pieceInfo.file());
-            pstmt.setString(3, String.valueOf(pieceInfo.role()));
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public void initializeTable() {
+        if (!isTableExists()) {
+            createTable();
         }
+    }
+
+    private boolean isTableExists() {
+        return queryExecute("""
+                        SELECT 1 FROM Information_schema.tables
+                        WHERE table_schema = 'chess'
+                        AND table_name = 'chess_pieces'
+                        """,
+                sql -> {
+                    Statement stmt = connection.createStatement();
+                    return stmt.executeQuery(sql)
+                               .next();
+                });
+    }
+
+    private void createTable() {
+        queryExecute("""
+                        CREATE TABLE chess_pieces (
+                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            rank_index INT NOT NULL,
+                            file_index INT NOT NULL,
+                            symbol VARCHAR(5) NOT NULL
+                        )""",
+                sql -> {
+                    Statement stmt = connection.createStatement();
+                    return stmt.execute(sql);
+                });
     }
 
     @Override
-    public void initializeChessTable() {
-        try {
-            if (!tableExists()) {
-                createChessPiecesTable();
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private boolean tableExists() throws SQLException {
-        String sql = """
-                SELECT 1 FROM Information_schema.tables
-                WHERE table_schema = 'chess'
-                AND table_name = 'chess_pieces'
-                """;
-        try (Statement stmt = connection.createStatement()) {
-            return stmt.executeQuery(sql).next();
-        }
-    }
-
-    private void createChessPiecesTable() throws SQLException {
-        String sql = """
-                CREATE TABLE chess_pieces (
-                    id INT AUTO_INCREMENT PRIMARY KEY,
-                    rank_index INT NOT NULL,
-                    file_index INT NOT NULL,
-                    symbol VARCHAR(5) NOT NULL
-                )""";
-        try (Statement stmt = connection.createStatement()) {
-            stmt.execute(sql);
-        }
+    public boolean isTableEmpty() {
+        return queryExecute("SELECT COUNT(*) AS rowcount FROM chess_pieces",
+                sql -> {
+                    Statement stmt = connection.createStatement();
+                    return stmt.executeQuery(sql)
+                               .next();
+                });
     }
 
     @Override
-    public boolean isInitITable() {
-        try {
-            return isTableEmpty("chess_pieces");
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        throw new IllegalArgumentException();
-    }
-
-    private boolean isTableEmpty(String tableName) throws SQLException {
-        String sql = "SELECT COUNT(*) AS rowcount FROM " + tableName;
-        try (PreparedStatement pstmt = connection.prepareStatement(sql);
-             ResultSet rs = pstmt.executeQuery()) {
-            if (rs.next()) {
-                int count = rs.getInt("rowcount");
-                System.out.println(count);
-                return count == 0;
-            }
-        }
-        return true;
+    public void insert(final PieceResponse pieceResponse) {
+        queryExecute("INSERT INTO chess_pieces (rank_index, file_index, symbol) VALUES (?, ?, ?)",
+                sql -> {
+                    PreparedStatement pstmt = connection.prepareStatement(sql);
+                    pstmt.setInt(1, pieceResponse.rank());
+                    pstmt.setInt(2, pieceResponse.file());
+                    pstmt.setString(3, String.valueOf(pieceResponse.role()));
+                    return pstmt.executeUpdate();
+                });
     }
 
     @Override
-    public List<ChessPiece> findAllPieces() {
-        List<ChessPiece> pieces = new ArrayList<>();
-        String sql = "SELECT * FROM chess_pieces";
-        try (Statement stmt = connection.createStatement();
-             ResultSet rs = stmt.executeQuery(sql)) {
-            while (rs.next()) {
-                pieces.add(new ChessPiece(
-                        rs.getLong("id"),
-                        Rank.fromIndex(rs.getInt("rank_index")),
-                        File.fromIndex(rs.getInt("file_index")),
-                        rs.getString("symbol")));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
+    public List<PieceEntity> findAllPieces() {
+        return queryExecute("SELECT * FROM chess_pieces",
+                sql -> {
+                    Statement stmt = connection.createStatement();
+                    ResultSet rs = stmt.executeQuery(sql);
+                    return toPieceEntities(rs);
+                });
+    }
+
+    @Override
+    public PieceEntity findByRankAndFile(final int rank, final int file) {
+        return queryExecute("SELECT * FROM chess_pieces WHERE rank_index = ? AND file_index = ?",
+                sql -> {
+                    PreparedStatement pstmt = connection.prepareStatement(sql);
+                    pstmt.setInt(1, rank);
+                    pstmt.setInt(2, file);
+                    return toPieceEntities(pstmt.executeQuery()).get(0);
+                });
+    }
+
+    private List<PieceEntity> toPieceEntities(final ResultSet resultSet) throws SQLException {
+        List<PieceEntity> pieces = new ArrayList<>();
+        while (resultSet.next()) {
+            pieces.add(new PieceEntity(
+                    resultSet.getLong("id"),
+                    resultSet.getInt("rank_index"),
+                    resultSet.getInt("file_index"),
+                    resultSet.getString("symbol")));
         }
         return pieces;
     }
 
     @Override
-    public ChessPiece findByRankAndFile(int rank, int file) {
-        List<ChessPiece> pieces = new ArrayList<>();
-        String sql = "SELECT * FROM chess_pieces WHERE rank_index = ? AND file_index = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setInt(1, rank);
-            pstmt.setInt(2, file);
-            ResultSet rs = pstmt.executeQuery();
-            while (rs.next()) {
-                pieces.add(new ChessPiece(
-                        rs.getLong("id"),
-                        Rank.fromIndex(rs.getInt("rank_index")),
-                        File.fromIndex(rs.getInt("file_index")),
-                        rs.getString("symbol")));
-            }
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return pieces.get(0);
+    public void update(final Long id, final PieceEntity pieceEntity) {
+        queryExecute("UPDATE chess_pieces SET symbol = ? WHERE id = ?",
+                sql -> {
+                    PreparedStatement pstmt = connection.prepareStatement(sql);
+                    pstmt.setString(1, pieceEntity.symbol());
+                    pstmt.setLong(2, id);
+                    return pstmt.executeUpdate();
+                });
     }
 
     @Override
-    public void update(final Long id, final ChessPiece chessPiece) {
-        String sql = "UPDATE chess_pieces SET symbol = ? WHERE id = ?";
-        try (PreparedStatement pstmt = connection.prepareStatement(sql)) {
-            pstmt.setString(1, chessPiece.symbol());
-            pstmt.setLong(2, id);
-            pstmt.executeUpdate();
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
+    public void deleteAll() {
+        queryExecute("DELETE FROM chess_pieces;",
+                sql -> {
+                    Statement stmt = connection.createStatement();
+                    return stmt.executeUpdate(sql);
+                });
     }
 
-    @Override
-    public void deleteAllPieces() {
-        String sqlDelete = "DELETE FROM chess_pieces;";
-        try (Statement stmt = connection.createStatement()) {
-            stmt.executeUpdate(sqlDelete);
+    private <T> T queryExecute(final String sql, final SqlExecutor<T> sqlExecutor) {
+        try {
+            return sqlExecutor.execute(sql);
         } catch (SQLException e) {
-            e.printStackTrace();
+            throw new RuntimeException(e);
         }
     }
 }
