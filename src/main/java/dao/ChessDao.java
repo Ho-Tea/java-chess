@@ -5,7 +5,7 @@ import entity.PieceEntity;
 import java.util.List;
 
 public interface ChessDao {
-
+    boolean isConnectionFail();
 
     void initializeTable();
 

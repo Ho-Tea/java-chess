@@ -6,12 +6,21 @@ import entity.PieceEntity;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class ChessDaoImpl implements ChessDao {
     private final Connection connection;
 
     public ChessDaoImpl() {
         this.connection = DBConnection.getConnection();
+    }
+
+    @Override
+    public boolean isConnectionFail() {
+        if (Objects.isNull(connection)) {
+            return true;
+        }
+        return false;
     }
 
     @Override

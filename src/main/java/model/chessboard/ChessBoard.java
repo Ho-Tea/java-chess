@@ -2,6 +2,7 @@ package model.chessboard;
 
 import dao.ChessDao;
 import dao.ChessDaoImpl;
+import dao.ChessDaoProxy;
 import entity.PieceEntity;
 import mapper.PieceEntityMapper;
 import model.direction.Destination;
@@ -17,14 +18,13 @@ import java.util.List;
 import java.util.Map;
 
 public class ChessBoard {
-    private static final ChessDao chessDao = new ChessDaoImpl();
+    private static final ChessDao chessDao = new ChessDaoProxy(new ChessDaoImpl());
     private final Map<Position, Piece> chessBoard;
     private final ChessState chessState;
 
     private ChessBoard(final Map<Position, Piece> chessBoard, final ChessState chessState) {
         this.chessBoard = chessBoard;
         this.chessState = chessState;
-        chessDao.initializeTable();
     }
 
     private ChessBoard(final Map<Position, Piece> chessBoard) {
@@ -32,6 +32,7 @@ public class ChessBoard {
     }
 
     public static ChessBoard load() {
+        chessDao.initializeTable();
         if (chessDao.isTableNotEmpty()) {
             return new ChessBoard(PieceEntityMapper.toChessBoard(chessDao.findAllPieces()));
         }
@@ -39,6 +40,7 @@ public class ChessBoard {
     }
 
     public static ChessBoard initialize() {
+        chessDao.initializeTable();
         Map<Position, Piece> chessBoard = ChessBoardFactory.create();
         if (chessDao.isTableNotEmpty()) {
             chessDao.deleteAll();
