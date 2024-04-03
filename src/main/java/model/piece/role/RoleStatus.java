@@ -1,5 +1,7 @@
 package model.piece.role;
 
+import java.util.Arrays;
+
 public enum RoleStatus {
     BISHOP,
     KING,
@@ -7,5 +9,12 @@ public enum RoleStatus {
     PAWN,
     QUEEN,
     ROOK,
-    SQUARE
+    SQUARE;
+
+    public static RoleStatus from(final String role) {
+        return Arrays.stream(values())
+                     .filter(roleStatus -> roleStatus.name() == role)
+                     .findFirst()
+                     .orElseThrow(() -> new IllegalArgumentException("해당 문자열과 일치하는 Role이 존재하지 않습니다."));
+    }
 }
