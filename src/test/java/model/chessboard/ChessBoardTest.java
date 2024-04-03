@@ -14,7 +14,7 @@ class ChessBoardTest {
     @DisplayName("특정 기물이 자신의 이동방향에 부합한 목적지로 이동할 수 있다.")
     @Test
     void move() {
-        ChessBoard chessBoard = new ChessBoard();
+        ChessBoard chessBoard = ChessBoard.initialize();
         assertAll(
                 () -> assertThat(chessBoard.getChessBoard().get(Position.of(File.A, Rank.FOUR)).isOccupied()).isFalse(),
                 () -> chessBoard.proceedToTurn(Position.of(File.A, Rank.TWO), Position.of(File.A, Rank.FOUR)),

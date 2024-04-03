@@ -1,84 +1,68 @@
 package controller;
 
-import dao.ChessDao;
-import dao.ChessDaoImpl;
+import dto.PieceDto;
+import mapper.PieceDtoMapper;
 import model.chessboard.ChessBoard;
 import model.piece.Color;
 import model.position.Position;
-import util.PieceInfoMapper;
 import view.GameCommand;
 import view.InputView;
 import view.OutputView;
-import view.dto.ChessPiece;
 import view.dto.GameProceedRequest;
-import view.dto.PieceInfo;
 
 import java.util.List;
 
 public class Controller {
     private final OutputView outputView;
-    private final ChessDao chessDao;
 
     public Controller() {
         outputView = new OutputView();
-        chessDao = new ChessDaoImpl();
     }
 
-    public void command() {
-        chessDao.initializeChessTable();
-        ChessBoard chess = new ChessBoard();
-        if (chessDao.isInitITable()) {
-            List<PieceInfo> pieceInfos = PieceInfoMapper.toPieceInfo(chess);
-            pieceInfos.forEach(chessDao::insertPiece);
-            outputView.printInitialGamePrompt();
-            execute(chess);
-            return;
-        }
-        outputView.printAlreadyExistGame();
-        chess = PieceInfoMapper.toChessBoard(chessDao.findAllPieces());
-        execute(chess);
-    }
-
-    public void execute(ChessBoard chessBoard) {
-        GameCommand gameCommand = initGameCommand();
+    public void execute() {
+        outputView.printGamePrompt();
+        GameCommand gameCommand = initialGameCommand();
+        ChessBoard chessBoard = generateChessBoard(gameCommand);
         while (gameCommand != GameCommand.END && !chessBoard.checkMate()) {
-            List<PieceInfo> pieceInfos = PieceInfoMapper.toPieceInfo(chessBoard);
-            outputView.printChessBoard(pieceInfos);
+            List<PieceDto> pieceDto = PieceDtoMapper.toPieceDto(chessBoard);
+            outputView.printChessBoard(pieceDto);
             gameCommand = play(chessBoard);
         }
-        finish(chessBoard);
-        if (chessBoard.checkMate()) {
-            chessDao.deleteAllPieces();
-        }
+        chessBoardWinner(chessBoard);
+        chessBoardScore(chessBoard);
     }
 
-    private GameCommand initGameCommand() {
+    private GameCommand initialGameCommand() {
         try {
             return InputView.inputInitialGameCommand();
         } catch (IllegalArgumentException e) {
             outputView.printExceptionMessage(e.getMessage());
-            return initGameCommand();
+            return initialGameCommand();
+        }
+    }
+
+    private ChessBoard generateChessBoard(final GameCommand gameCommand) {
+        try {
+            if (gameCommand == GameCommand.LOAD) {
+                return ChessBoard.load();
+            }
+            return ChessBoard.initialize();
+        } catch (IllegalArgumentException e) {
+            outputView.printExceptionMessage(e.getMessage());
+            return generateChessBoard(gameCommand);
         }
     }
 
     private GameCommand play(final ChessBoard chessBoard) {
         try {
             GameProceedRequest gameProceedRequest = InputView.inputGameProceedCommand();
-            if (gameProceedRequest.gameCommand() == GameCommand.START) {
-                throw new IllegalArgumentException("이미 진행중인 게임이 존재합니다.");
+            GameCommand gameCommand = gameProceedRequest.gameCommand();
+            if (gameCommand != GameCommand.MOVE || gameCommand != GameCommand.END) {
+                throw new IllegalArgumentException("현재 진행중인 게임이 존재합니다.");
             }
-            if (gameProceedRequest.gameCommand() == GameCommand.MOVE) {
+            if (gameCommand == GameCommand.MOVE) {
                 controlChessBoard(chessBoard, gameProceedRequest);
             }
-            if (gameProceedRequest.gameCommand() == GameCommand.END) {
-                return GameCommand.END;
-            }
-            Position sourcePosition = Position.from(gameProceedRequest.sourcePosition());
-            Position targetPosition = Position.from(gameProceedRequest.targetPosition());
-            ChessPiece sourceChess = chessDao.findByRankAndFile(sourcePosition.rank().index(), sourcePosition.file().index());
-            ChessPiece targetChess = chessDao.findByRankAndFile(targetPosition.rank().index(), targetPosition.file().index());
-            chessDao.update(targetChess.id(), sourceChess);
-            chessDao.update(sourceChess.id(), new ChessPiece(targetChess.id(), targetChess.rank(), targetChess.file(), "."));
             return gameProceedRequest.gameCommand();
         } catch (IllegalArgumentException e) {
             outputView.printExceptionMessage(e.getMessage());
@@ -92,17 +76,20 @@ public class Controller {
         chessBoard.proceedToTurn(source, destination);
     }
 
-    private void finish(final ChessBoard chessBoard) {
+    private void chessBoardWinner(final ChessBoard chessBoard) {
         try {
             GameCommand gameCommand = InputView.inputGameStatusCommand();
             if (gameCommand == GameCommand.STATUS) {
-                outputView.printWinner(chessBoard.winner().name());
-                outputView.printScore(chessBoard.score(Color.BLACK).value(), Color.BLACK.name());
-                outputView.printScore(chessBoard.score(Color.WHITE).value(), Color.WHITE.name());
+                outputView.printWinner(chessBoard.winner());
             }
         } catch (IllegalArgumentException e) {
             outputView.printExceptionMessage(e.getMessage());
-            finish(chessBoard);
+            chessBoardWinner(chessBoard);
         }
+    }
+
+    private void chessBoardScore(final ChessBoard chessBoard) {
+        outputView.printScore(chessBoard.score(Color.BLACK).value(), Color.BLACK.name());
+        outputView.printScore(chessBoard.score(Color.WHITE).value(), Color.WHITE.name());
     }
 }
