@@ -12,11 +12,10 @@ public class DBConnection {
     private static final String PASSWORD = "password";
 
     public static Connection getConnection() {
-        try (Connection connection = DriverManager.getConnection("jdbc:mysql://" + SERVER + "/" + DATABASE + OPTION, USERNAME, PASSWORD)) {
-            return connection;
+        try {
+            return DriverManager.getConnection("jdbc:mysql://" + SERVER + "/" + DATABASE + OPTION, USERNAME, PASSWORD);
         } catch (final SQLException e) {
-            System.err.println("DB 연결 오류:" + e.getMessage());
-            e.printStackTrace();
+            System.err.println("DB와 연결이 이루어 지지 않아 저장은 불가합니다.");
             return null;
         }
     }
