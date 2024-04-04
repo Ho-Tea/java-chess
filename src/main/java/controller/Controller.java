@@ -46,24 +46,23 @@ public class Controller {
             if (gameCommand == GameCommand.LOAD) {
                 return ChessBoard.load();
             }
-            return ChessBoard.initialize();
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalStateException e) {
             outputView.printExceptionMessage(e.getMessage());
-            return generateChessBoard(gameCommand);
         }
+        return ChessBoard.initialize();
     }
 
     private GameCommand play(final ChessBoard chessBoard) {
         try {
             GameProceedRequest gameProceedRequest = InputView.inputGameProceedCommand();
             GameCommand gameCommand = gameProceedRequest.gameCommand();
-            if (gameCommand != GameCommand.MOVE || gameCommand != GameCommand.END) {
+            if (gameCommand != GameCommand.MOVE && gameCommand != GameCommand.END) {
                 throw new IllegalArgumentException("현재 진행중인 게임이 존재합니다.");
             }
             if (gameCommand == GameCommand.MOVE) {
                 controlChessBoard(chessBoard, gameProceedRequest);
             }
-            return gameProceedRequest.gameCommand();
+            return gameCommand;
         } catch (IllegalArgumentException e) {
             outputView.printExceptionMessage(e.getMessage());
             return play(chessBoard);
