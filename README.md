@@ -2,6 +2,12 @@
 
 체스 미션 저장소
 
+#### 실행 방법
+```
+cd docker/
+docker-compose up
+```
+
 # 체스 4 단계 미션 - DB 적용
 
 ## 1. 기능 요구사항
@@ -87,12 +93,59 @@ abcdefgh
 
 ## 2. 실행 결과
 
-```
-> 체스 게임을 시작합니다.
+
+### DB 연결 시
+
+``` java
+체스 게임을 시작합니다.
 > 게임 시작 : start
+> 게임 불러오기 : load
 > 게임 종료 : end
 > 게임 이동 : move source위치 target위치 - 예. move b2 b3
-start
+load
+RNBQKBNR
+PPPPPPPP
+........
+........
+p.......
+........
+.ppppppp
+rnbqkbnr
+
+move b2 b4
+[ERROR] 검정색 진영의 기물을 이동해야 합니다.
+move a7 a5
+RNBQKBNR
+.PPPPPPP
+........
+P.......
+p.......
+........
+.ppppppp
+rnbqkbnr
+
+end
+체스 게임을 종료합니다.
+> 게임 현황 확인 : status
+> 게임 종료 : end
+status
+게임 결과  : DRAW
+BLACK : 38.0 점
+WHITE : 38.0 점
+```
+
+### DB 연결 실패 시
+``` java
+체스 게임을 시작합니다.
+> 게임 시작 : start
+> 게임 불러오기 : load
+> 게임 종료 : end
+> 게임 이동 : move source위치 target위치 - 예. move b2 b3
+load
+[ERROR] 저장된 체스판이 존재하지 않습니다.
+새로운 체스판을 생성합니다.
+DB와 연결이 이루어 지지 않아 저장은 불가합니다.
+
 RNBQKBNR
 PPPPPPPP
 ........
@@ -102,16 +155,23 @@ PPPPPPPP
 pppppppp
 rnbqkbnr
 
-move b2 b3
+move a2 a4
 RNBQKBNR
 PPPPPPPP
 ........
 ........
+p.......
 ........
-.p......
-p.pppppp
+.ppppppp
 rnbqkbnr
 
-// 실행결과 추가 예정
+end
+체스 게임을 종료합니다.
+> 게임 현황 확인 : status
+> 게임 종료 : end
+status
+게임 결과  : DRAW
+BLACK : 38.0 점
+WHITE : 38.0 점
 ```
 
