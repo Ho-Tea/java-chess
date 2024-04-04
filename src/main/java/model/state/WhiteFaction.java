@@ -26,7 +26,7 @@ public sealed class WhiteFaction implements FactionState permits WhiteFactionChe
         }
         Position kingPosition = positionOfKing(chessBoard, Color.WHITE);
         Map<Position, Piece> enemyFaction = factionOf(chessBoard, Color.BLACK);
-        return enemyFaction.entrySet()
+        return enemyFaction.keySet()
                            .stream()
                            .anyMatch(entry -> possibleAttacked(chessBoard, kingPosition, entry));
     }

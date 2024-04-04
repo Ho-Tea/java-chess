@@ -26,7 +26,7 @@ public sealed class BlackFaction implements FactionState permits BlackFactionChe
         }
         Position kingPosition = positionOfKing(chessBoard, Color.BLACK);
         Map<Position, Piece> enemyFaction = factionOf(chessBoard, Color.WHITE);
-        return enemyFaction.entrySet()
+        return enemyFaction.keySet()
                            .stream()
                            .anyMatch(entry -> possibleAttacked(chessBoard, kingPosition, entry));
     }

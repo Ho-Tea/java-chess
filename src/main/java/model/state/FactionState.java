@@ -28,29 +28,29 @@ public sealed interface FactionState permits BlackFaction, WhiteFaction {
 
     default Map<Position, Piece> factionOf(final Map<Position, Piece> chessBoard, final Color color) {
         Map<Position, Piece> faction = new HashMap<>();
-        chessBoard.entrySet()
+        chessBoard.keySet()
                   .stream()
-                  .filter(entry -> entry.getValue().color() == color)
-                  .forEach(entry -> faction.put(entry.getKey(), entry.getValue()));
+                  .filter(position -> chessBoard.get(position).color() == color)
+                  .forEach(position -> faction.put(position, chessBoard.get(position)));
         return faction;
     }
 
     default boolean possibleCheckMate(final Map<Position, Piece> chessBoard, final Color ourColor, final Color enemyColor) {
-        if (checkMate(chessBoard, ourColor)) {
+        if (kingNonExist(chessBoard, ourColor)) {
             return true;
         }
         Position kingPosition = positionOfKing(chessBoard, ourColor);
         Map<Position, Piece> enemyFaction = factionOf(chessBoard, enemyColor);
         Map<Position, Piece> ourFaction = factionOf(chessBoard, ourColor);
         ourFaction.remove(kingPosition);
-        List<Map.Entry<Position, Piece>> enemies = enemyFaction.entrySet()
-                                                               .stream()
-                                                               .filter(enemy -> possibleAttacked(chessBoard, kingPosition, enemy))
-                                                               .toList();
-        boolean canTakeEnemy = canTakeEnemy(chessBoard, ourFaction, enemies);
-        boolean canDefence = enemies.stream()
-                                    .map(enemy -> enemy.getValue().findRoute(enemy.getKey(), kingPosition))
-                                    .allMatch(route -> rotate(route, kingPosition, ourFaction));
+        List<Position> enemiesPosition = enemyFaction.keySet()
+                                                     .stream()
+                                                     .filter(enemy -> possibleAttacked(chessBoard, kingPosition, enemy))
+                                                     .toList();
+        boolean canTakeEnemy = canTakeEnemy(chessBoard, ourFaction, enemiesPosition);
+        boolean canDefence = enemiesPosition.stream()
+                                            .map(enemy -> chessBoard.get(enemy).findRoute(enemy, kingPosition))
+                                            .allMatch(route -> rotate(route, kingPosition, ourFaction));
         return !(canTakeEnemy || canDefence);
     }
 
@@ -61,17 +61,16 @@ public sealed interface FactionState permits BlackFaction, WhiteFaction {
                     .anyMatch(position -> canDefence(ourFaction, position));
     }
 
-    private boolean canTakeEnemy(final Map<Position, Piece> chessBoard, final Map<Position, Piece> ourFaction, final List<Map.Entry<Position, Piece>> enemies) {
-        return enemies.stream()
-                      .map(Map.Entry::getKey)
-                      .allMatch(enemy -> possibleAttacking(chessBoard, ourFaction, enemy));
+    private boolean canTakeEnemy(final Map<Position, Piece> chessBoard, final Map<Position, Piece> ourFaction, final List<Position> enemiesPosition) {
+        return enemiesPosition.stream()
+                              .allMatch(enemy -> possibleAttacking(chessBoard, ourFaction, enemy));
     }
 
     private boolean canDefence(final Map<Position, Piece> ourFaction, final Position destination) {
         try {
-            return ourFaction.entrySet()
+            return ourFaction.keySet()
                              .stream()
-                             .map(entry -> entry.getValue().findRoute(entry.getKey(), destination))
+                             .map(position -> ourFaction.get(position).findRoute(position, destination))
                              .findAny()
                              .isPresent();
         } catch (IllegalArgumentException e) {
@@ -79,32 +78,30 @@ public sealed interface FactionState permits BlackFaction, WhiteFaction {
         }
     }
 
-    default boolean checkMate(final Map<Position, Piece> chessBoard, final Color color) {
-        return chessBoard.entrySet()
+    default boolean kingNonExist(final Map<Position, Piece> chessBoard, final Color color) {
+        return chessBoard.values()
                          .stream()
-                         .noneMatch(entry -> entry.getValue().roleStatus() == RoleStatus.KING
-                                 && entry.getValue().color() == color);
+                         .noneMatch(piece -> piece.roleStatus() == RoleStatus.KING
+                                 && piece.color() == color);
     }
 
     private boolean possibleAttacking(final Map<Position, Piece> chessBoard, final Map<Position, Piece> ourFaction, final Position enemyPosition) {
-        return ourFaction.entrySet()
+        return ourFaction.keySet()
                          .stream()
                          .anyMatch(ourEntry -> possibleAttacked(chessBoard, enemyPosition, ourEntry));
     }
 
     default Position positionOfKing(final Map<Position, Piece> chessBoard, final Color color) {
-        return chessBoard.entrySet()
+        return chessBoard.keySet()
                          .stream()
-                         .filter(entry -> entry.getValue().roleStatus() == RoleStatus.KING
-                                 && entry.getValue().color() == color)
-                         .map(Map.Entry::getKey)
+                         .filter(position -> chessBoard.get(position).roleStatus() == RoleStatus.KING
+                                 && chessBoard.get(position).color() == color)
                          .findFirst()
                          .orElseThrow(() -> new IllegalArgumentException("해당 색깔의 King이 존재하지 않습니다."));
     }
 
-    default boolean possibleAttacked(final Map<Position, Piece> chessBoard, final Position kingPosition, final Map.Entry<Position, Piece> entry) {
-        Position position = entry.getKey();
-        Piece piece = entry.getValue();
+    default boolean possibleAttacked(final Map<Position, Piece> chessBoard, final Position kingPosition, final Position position) {
+        Piece piece = chessBoard.get(position);
         try {
             Route route = piece.findRoute(position, kingPosition);
             piece.validateMoving(WayPoints.of(chessBoard, route, kingPosition), new Destination(kingPosition, chessBoard.get(kingPosition)));
