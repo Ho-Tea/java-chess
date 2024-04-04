@@ -34,7 +34,7 @@ public class Position {
     }
 
     public boolean same(final File file) {
-        return this.file == file;
+        return this.file.equals(file);
     }
 
     public File file() {
