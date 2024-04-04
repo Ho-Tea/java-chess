@@ -1,5 +1,6 @@
 package dao;
 
+import entity.ChessBoardEntity;
 import entity.PieceEntity;
 
 import java.util.List;
@@ -10,40 +11,60 @@ public class ChessDaoProxy implements ChessDao {
 
     public ChessDaoProxy(final ChessDao chessDao) {
         this.chessDao = chessDao;
-        this.dbAvailable = chessDao.isConnectionFail();
+        this.dbAvailable = chessDao.isConnection();
     }
 
     @Override
-    public boolean isConnectionFail() {
-        if (!dbAvailable) {
-            return true;
-        }
+    public boolean isConnection() {
         return false;
     }
 
     @Override
     public void initializeTable() {
         if (!dbAvailable) {
-            System.out.println("데이터 베이스와의 연결에 실패하여 단순 콘솔 출력으로만 진행합니다.");
             return;
         }
         chessDao.initializeTable();
     }
 
     @Override
-    public boolean isTableNotEmpty() {
-        if (!dbAvailable) {
-            return false;
-        }
-        return chessDao.isTableNotEmpty();
-    }
-
-    @Override
-    public void insert(final PieceEntity pieceEntity) {
+    public void dropTables() {
         if (!dbAvailable) {
             return;
         }
-        chessDao.insert(pieceEntity);
+        chessDao.dropTables();
+    }
+
+    @Override
+    public boolean isPiecesTableNotEmpty() {
+        if (!dbAvailable) {
+            return false;
+        }
+        return chessDao.isPiecesTableNotEmpty();
+    }
+
+    @Override
+    public void insertPiece(final PieceEntity pieceEntity) {
+        if (!dbAvailable) {
+            return;
+        }
+        chessDao.insertPiece(pieceEntity);
+    }
+
+    @Override
+    public Long insertChessBoard(final ChessBoardEntity chessBoard) {
+        if (!dbAvailable) {
+            return null;
+        }
+        return chessDao.insertChessBoard(chessBoard);
+    }
+
+    @Override
+    public String findTurn(final Long chessBoardId) {
+        if (!dbAvailable) {
+            return null;
+        }
+        return chessDao.findTurn(chessBoardId);
     }
 
     @Override
@@ -57,24 +78,24 @@ public class ChessDaoProxy implements ChessDao {
     @Override
     public PieceEntity findByRankAndFile(final int rank, final int file) {
         if (!dbAvailable) {
-            return new PieceEntity(1L, 1,1,"","");
+            return new PieceEntity(1L, 1L, 1, 1, "", "");
         }
         return chessDao.findByRankAndFile(rank, file);
     }
 
     @Override
-    public void update(final Long id, final PieceEntity pieceEntity) {
+    public void updatePiece(final Long id, final PieceEntity pieceEntity) {
         if (!dbAvailable) {
             return;
         }
-        chessDao.update(id, pieceEntity);
+        chessDao.updatePiece(id, pieceEntity);
     }
 
     @Override
-    public void deleteAll() {
+    public void updateTurn(final Long id, final String color) {
         if (!dbAvailable) {
             return;
         }
-        chessDao.deleteAll();
+        chessDao.updateTurn(id, color);
     }
 }

@@ -3,6 +3,7 @@ package model.chessboard;
 import dao.ChessDao;
 import dao.ChessDaoImpl;
 import dao.ChessDaoProxy;
+import entity.ChessBoardEntity;
 import entity.PieceEntity;
 import mapper.PieceEntityMapper;
 import model.direction.Destination;
@@ -32,21 +33,20 @@ public class ChessBoard {
     }
 
     public static ChessBoard load() {
-        chessDao.initializeTable();
-        if (chessDao.isTableNotEmpty()) {
-            return new ChessBoard(PieceEntityMapper.toChessBoard(chessDao.findAllPieces()));
+        if (chessDao.isPiecesTableNotEmpty()) {
+            ChessState chessState = ChessState.infuse(chessDao.findTurn(1L));
+            return new ChessBoard(PieceEntityMapper.toChessBoard(chessDao.findAllPieces()), chessState);
         }
-        throw new IllegalStateException("저장된 체스판이 존재하지 않습니다.");
+        throw new IllegalStateException("저장된 체스판이 존재하지 않습니다." + System.lineSeparator() + "새로운 체스판을 생성합니다.");
     }
 
     public static ChessBoard initialize() {
+        chessDao.dropTables();
         chessDao.initializeTable();
         Map<Position, Piece> chessBoard = ChessBoardFactory.create();
-        if (chessDao.isTableNotEmpty()) {
-            chessDao.deleteAll();
-        }
-        List<PieceEntity> pieceEntries = PieceEntityMapper.toPieceEntities(chessBoard);
-        pieceEntries.forEach(chessDao::insert);
+        Long chessBoardId = chessDao.insertChessBoard(new ChessBoardEntity(null, Color.WHITE.name()));
+        List<PieceEntity> pieceEntries = PieceEntityMapper.toPieceEntities(chessBoardId, chessBoard);
+        pieceEntries.forEach(chessDao::insertPiece);
         return new ChessBoard(chessBoard);
     }
 
@@ -60,15 +60,16 @@ public class ChessBoard {
         Destination destination = new Destination(target, targetPiece);
         sourcePiece.validateMoving(wayPoints, destination);
         move(source, sourcePiece, destination);
+        save(chessState.nextTurn(), source, target);
         chessState.passTheTurn();
-        apply(source, target);
     }
 
-    public void apply(final Position source, final Position target) {
+    private void save(final Color turn, final Position source, final Position target) {
         PieceEntity sourceEntity = chessDao.findByRankAndFile(source.rank().index(), source.file().index());
         PieceEntity targetEntity = chessDao.findByRankAndFile(target.rank().index(), target.file().index());
-        chessDao.update(targetEntity.id(), sourceEntity);
-        chessDao.update(sourceEntity.id(), PieceEntityMapper.toSquarePieceEntity(targetEntity));
+        chessDao.updatePiece(targetEntity.id(), sourceEntity);
+        chessDao.updatePiece(sourceEntity.id(), PieceEntityMapper.toSquarePieceEntity(targetEntity));
+        chessDao.updateTurn(sourceEntity.chessBoardId(), turn.name());
     }
 
     private void move(final Position source, final Piece sourcePiece, final Destination destination) {
@@ -93,7 +94,7 @@ public class ChessBoard {
 
     public boolean checkMate() {
         if (chessState.checkMate(chessBoard)) {
-            chessDao.deleteAll();
+            chessDao.dropTables();
             return true;
         }
         return false;

@@ -1,6 +1,7 @@
 package dao;
 
 import db.DBConnection;
+import entity.ChessBoardEntity;
 import entity.PieceEntity;
 
 import java.sql.*;
@@ -16,21 +17,37 @@ public class ChessDaoImpl implements ChessDao {
     }
 
     @Override
-    public boolean isConnectionFail() {
+    public boolean isConnection() {
         if (Objects.isNull(connection)) {
-            return true;
+            return false;
         }
-        return false;
+        return true;
     }
 
     @Override
     public void initializeTable() {
-        if (!isTableExists()) {
-            createTable();
+        if (!isChessBoardTableExists()) {
+            createChessBoard();
+        }
+        if (!isChessPiecesTableExists()) {
+            createChessPieces();
         }
     }
 
-    private boolean isTableExists() {
+    private boolean isChessBoardTableExists() {
+        return queryExecute("""
+                        SELECT 1 FROM Information_schema.tables
+                        WHERE table_schema = 'chess'
+                        AND table_name = 'chess_board'
+                        """,
+                sql -> {
+                    Statement stmt = connection.createStatement();
+                    ResultSet resultSet = stmt.executeQuery(sql);
+                    return resultSet.next();
+                });
+    }
+
+    private boolean isChessPiecesTableExists() {
         return queryExecute("""
                         SELECT 1 FROM Information_schema.tables
                         WHERE table_schema = 'chess'
@@ -38,19 +55,34 @@ public class ChessDaoImpl implements ChessDao {
                         """,
                 sql -> {
                     Statement stmt = connection.createStatement();
-                    return stmt.executeQuery(sql)
-                               .next();
+                    ResultSet resultSet = stmt.executeQuery(sql);
+                    return resultSet.next();
                 });
     }
 
-    private void createTable() {
+    private void createChessBoard() {
+        queryExecute("""
+                        CREATE TABLE chess_board (
+                            chess_board_id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                            turn ENUM('WHITE', 'BLACK') NOT NULL
+                            );                    
+                        """,
+                sql -> {
+                    Statement stmt = connection.createStatement();
+                    return stmt.execute(sql);
+                });
+    }
+
+    private void createChessPieces() {
         queryExecute("""
                         CREATE TABLE chess_pieces (
-                            id INT AUTO_INCREMENT PRIMARY KEY,
+                            id BIGINT AUTO_INCREMENT PRIMARY KEY,
+                            chess_board_id BIGINT,
                             rank_index INT NOT NULL,
                             file_index INT NOT NULL,
                             color ENUM('BLACK', 'WHITE', 'UN_COLORED'),
-                            role ENUM('PAWN', 'BISHOP', 'KNIGHT', 'KING', 'QUEEN', 'ROOK', 'SQUARE')
+                            role ENUM('PAWN', 'BISHOP', 'KNIGHT', 'KING', 'QUEEN', 'ROOK', 'SQUARE'),
+                            FOREIGN KEY (chess_board_id) REFERENCES chess_board(chess_board_id)                            
                         )""",
                 sql -> {
                     Statement stmt = connection.createStatement();
@@ -59,24 +91,79 @@ public class ChessDaoImpl implements ChessDao {
     }
 
     @Override
-    public boolean isTableNotEmpty() {
-        return queryExecute("SELECT COUNT(*) AS rowcount FROM chess_pieces",
+    public void dropTables() {
+        dropChessPieces();
+        dropChessBoard();
+    }
+
+    private void dropChessBoard() {
+        queryExecute("""
+                        DROP TABLE IF EXISTS chess_board;
+                        """,
                 sql -> {
                     Statement stmt = connection.createStatement();
-                    return stmt.executeQuery(sql)
-                               .next();
+                    return stmt.execute(sql);
+                });
+    }
+
+    private void dropChessPieces() {
+        queryExecute("""
+                        DROP TABLE IF EXISTS chess_pieces;
+                        """,
+                sql -> {
+                    Statement stmt = connection.createStatement();
+                    return stmt.execute(sql);
                 });
     }
 
     @Override
-    public void insert(final PieceEntity pieceEntity) {
-        queryExecute("INSERT INTO chess_pieces (rank_index, file_index, color, role) VALUES (?, ?, ?, ?)",
+    public boolean isPiecesTableNotEmpty() {
+        if (isChessPiecesTableExists()) {
+            return queryExecute("SELECT COUNT(*) AS rowcount FROM chess_pieces",
+                    sql -> {
+                        Statement stmt = connection.createStatement();
+                        return stmt.executeQuery(sql)
+                                   .next();
+                    });
+        }
+        return false;
+    }
+
+    @Override
+    public Long insertChessBoard(final ChessBoardEntity chessBoardentity) {
+        return queryExecute("INSERT INTO chess_board (turn) VALUES (?)",
+                sql -> {
+                    PreparedStatement pstmt = connection.prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+                    pstmt.setString(1, chessBoardentity.turn());
+                    pstmt.executeUpdate();
+                    ResultSet generatedKeys = pstmt.getGeneratedKeys();
+                    generatedKeys.next();
+                    return generatedKeys.getLong(1);
+                });
+    }
+
+    @Override
+    public String findTurn(final Long chessBoardId) {
+        return queryExecute("SELECT turn FROM chess_board WHERE chess_board_id = ?",
                 sql -> {
                     PreparedStatement pstmt = connection.prepareStatement(sql);
-                    pstmt.setInt(1, pieceEntity.rank());
-                    pstmt.setInt(2, pieceEntity.file());
-                    pstmt.setString(3, pieceEntity.color());
-                    pstmt.setString(4, pieceEntity.role());
+                    pstmt.setLong(1, chessBoardId);
+                    ResultSet resultSet = pstmt.executeQuery();
+                    resultSet.next();
+                    return resultSet.getString("turn");
+                });
+    }
+
+    @Override
+    public void insertPiece(final PieceEntity pieceEntity) {
+        queryExecute("INSERT INTO chess_pieces (chess_board_id, rank_index, file_index, color, role) VALUES (?, ?, ?, ?, ?)",
+                sql -> {
+                    PreparedStatement pstmt = connection.prepareStatement(sql);
+                    pstmt.setLong(1, pieceEntity.chessBoardId());
+                    pstmt.setInt(2, pieceEntity.rank());
+                    pstmt.setInt(3, pieceEntity.file());
+                    pstmt.setString(4, pieceEntity.color());
+                    pstmt.setString(5, pieceEntity.role());
                     return pstmt.executeUpdate();
                 });
     }
@@ -107,6 +194,7 @@ public class ChessDaoImpl implements ChessDao {
         while (resultSet.next()) {
             pieces.add(new PieceEntity(
                     resultSet.getLong("id"),
+                    resultSet.getLong("chess_board_id"),
                     resultSet.getInt("rank_index"),
                     resultSet.getInt("file_index"),
                     resultSet.getString("color"),
@@ -116,7 +204,7 @@ public class ChessDaoImpl implements ChessDao {
     }
 
     @Override
-    public void update(final Long id, final PieceEntity pieceEntity) {
+    public void updatePiece(final Long id, final PieceEntity pieceEntity) {
         queryExecute("UPDATE chess_pieces SET color = ?, role = ? WHERE id = ?",
                 sql -> {
                     PreparedStatement pstmt = connection.prepareStatement(sql);
@@ -128,11 +216,13 @@ public class ChessDaoImpl implements ChessDao {
     }
 
     @Override
-    public void deleteAll() {
-        queryExecute("DELETE FROM chess_pieces;",
+    public void updateTurn(final Long id, final String turn) {
+        queryExecute("UPDATE chess_board SET turn = ? WHERE chess_board_id = ?",
                 sql -> {
-                    Statement stmt = connection.createStatement();
-                    return stmt.executeUpdate(sql);
+                    PreparedStatement pstmt = connection.prepareStatement(sql);
+                    pstmt.setString(1, turn);
+                    pstmt.setLong(2, id);
+                    return pstmt.executeUpdate();
                 });
     }
 
