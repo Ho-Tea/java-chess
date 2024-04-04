@@ -12,24 +12,23 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Supplier;
 
 public class PieceEntityMapper {
-    private static final Map<RoleStatus, Piece> WHITE_PIECES = Map.of(
-            RoleStatus.KING, new Piece(new King(Color.WHITE)),
-            RoleStatus.KNIGHT, new Piece(new Knight(Color.WHITE)),
-            RoleStatus.BISHOP, new Piece(new Bishop(Color.WHITE)),
-            RoleStatus.PAWN, new Piece(new Pawn(Color.WHITE)),
-            RoleStatus.QUEEN, new Piece(new Queen(Color.WHITE)),
-            RoleStatus.ROOK, new Piece(new Rook(Color.WHITE)),
-            RoleStatus.SQUARE, new Piece(new Square()));
-    private static final Map<RoleStatus, Piece> BLACK_PIECES = Map.of(
-            RoleStatus.KING, new Piece(new King(Color.BLACK)),
-            RoleStatus.KNIGHT, new Piece(new Knight(Color.BLACK)),
-            RoleStatus.BISHOP, new Piece(new Bishop(Color.BLACK)),
-            RoleStatus.PAWN, new Piece(new Pawn(Color.BLACK)),
-            RoleStatus.QUEEN, new Piece(new Queen(Color.BLACK)),
-            RoleStatus.ROOK, new Piece(new Rook(Color.BLACK)),
-            RoleStatus.SQUARE, new Piece(new Square()));
+    private static final Map<RoleStatus, Supplier<Piece>> WHITE_PIECES = Map.of(
+            RoleStatus.KING, () -> new Piece(new King(Color.WHITE)),
+            RoleStatus.KNIGHT, () -> new Piece(new Knight(Color.WHITE)),
+            RoleStatus.BISHOP, () -> new Piece(new Bishop(Color.WHITE)),
+            RoleStatus.PAWN, () -> new Piece(new Pawn(Color.WHITE)),
+            RoleStatus.QUEEN, () -> new Piece(new Queen(Color.WHITE)),
+            RoleStatus.ROOK, () -> new Piece(new Rook(Color.WHITE)));
+    private static final Map<RoleStatus, Supplier<Piece>> BLACK_PIECES = Map.of(
+            RoleStatus.KING, () -> new Piece(new King(Color.BLACK)),
+            RoleStatus.KNIGHT, () -> new Piece(new Knight(Color.BLACK)),
+            RoleStatus.BISHOP, () -> new Piece(new Bishop(Color.BLACK)),
+            RoleStatus.PAWN, () -> new Piece(new Pawn(Color.BLACK)),
+            RoleStatus.QUEEN, () -> new Piece(new Queen(Color.BLACK)),
+            RoleStatus.ROOK, () -> new Piece(new Rook(Color.BLACK)));
 
 
     private PieceEntityMapper() {
@@ -40,22 +39,27 @@ public class PieceEntityMapper {
         Map<Position, Piece> chess = new LinkedHashMap<>();
         pieceEntities.forEach(pieceEntity -> {
                     RoleStatus roleStatus = RoleStatus.from(pieceEntity.role());
-                    Piece piece = WHITE_PIECES.get(roleStatus);
-                    if (pieceEntity.color() == Color.BLACK.name()) {
-                        piece = BLACK_PIECES.get(roleStatus);
+                    if (pieceEntity.color().equals(Color.WHITE.name())) {
+                        chess.put(Position.of(File.fromIndex(pieceEntity.file()), Rank.fromIndex(pieceEntity.rank())), WHITE_PIECES.get(roleStatus).get());
                     }
-                    chess.put(Position.of(File.fromIndex(pieceEntity.file()), Rank.fromIndex(pieceEntity.rank())), piece);
+                    if (pieceEntity.color().equals(Color.BLACK.name())) {
+                        chess.put(Position.of(File.fromIndex(pieceEntity.file()), Rank.fromIndex(pieceEntity.rank())), BLACK_PIECES.get(roleStatus).get());
+                    }
+                    if (pieceEntity.color().equals(Color.UN_COLORED.name())) {
+                        chess.put(Position.of(File.fromIndex(pieceEntity.file()), Rank.fromIndex(pieceEntity.rank())), new Piece(new Square()));
+                    }
                 }
         );
         return chess;
     }
 
-    public static List<PieceEntity> toPieceEntities(final Map<Position, Piece> chessBoard) {
+    public static List<PieceEntity> toPieceEntities(final Long chessBoardId, final Map<Position, Piece> chessBoard) {
         List<PieceEntity> pieceEntities = new ArrayList<>();
         for (Position position : chessBoard.keySet()) {
             Piece piece = chessBoard.get(position);
             pieceEntities.add(new PieceEntity(
                     null,
+                    chessBoardId,
                     position.rank().index(),
                     position.file().index(),
                     piece.color().name(),
