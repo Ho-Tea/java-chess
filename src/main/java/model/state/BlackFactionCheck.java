@@ -23,6 +23,6 @@ public final class BlackFactionCheck extends BlackFaction {
 
     @Override
     public boolean defeat(final Map<Position, Piece> chessBoard) {
-        return checkMate(chessBoard, Color.BLACK);
+        return kingNonExist(chessBoard, Color.BLACK);
     }
 }

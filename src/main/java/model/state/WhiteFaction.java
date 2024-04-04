@@ -21,7 +21,7 @@ public sealed class WhiteFaction implements FactionState permits WhiteFactionChe
 
     @Override
     public boolean isCheck(final Map<Position, Piece> chessBoard) {
-        if (checkMate(chessBoard, Color.WHITE)) {
+        if (kingNonExist(chessBoard, Color.WHITE)) {
             return false;
         }
         Position kingPosition = positionOfKing(chessBoard, Color.WHITE);
@@ -38,7 +38,7 @@ public sealed class WhiteFaction implements FactionState permits WhiteFactionChe
 
     @Override
     public boolean defeat(final Map<Position, Piece> chessBoard) {
-        return checkMate(chessBoard, Color.WHITE);
+        return kingNonExist(chessBoard, Color.WHITE);
     }
 
     @Override

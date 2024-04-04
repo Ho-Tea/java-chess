@@ -22,6 +22,6 @@ public final class WhiteFactionCheck extends WhiteFaction {
 
     @Override
     public boolean defeat(Map<Position, Piece> chessBoard) {
-        return checkMate(chessBoard, Color.WHITE);
+        return kingNonExist(chessBoard, Color.WHITE);
     }
 }
