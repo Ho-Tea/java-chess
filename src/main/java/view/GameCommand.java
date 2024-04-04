@@ -15,6 +15,6 @@ public enum GameCommand {
         return Arrays.stream(values())
                      .filter(gameCommand -> gameCommand.command.equals(command))
                      .findFirst()
-                     .orElseThrow(() -> new IllegalArgumentException("입력하신 Command가 없습니다."));
+                     .orElseThrow(() -> new IllegalArgumentException("입력하신 Command는 적합하지 않습니다."));
     }
 }
