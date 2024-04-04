@@ -60,6 +60,7 @@ public class InputView {
     public static GameCommand inputGameStatusCommand() {
         System.out.println("체스 게임을 종료합니다.");
         System.out.println("> 게임 현황 확인 : status");
+        System.out.println("> 게임 종료 : end");
         String input = readLine();
         GameCommand gameCommand = GameCommand.from(input);
         if (gameCommand != GameCommand.STATUS && gameCommand != GameCommand.END) {
